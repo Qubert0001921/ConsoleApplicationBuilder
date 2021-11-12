@@ -1,86 +1,45 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ConsoleApplicationBuilder.Exceptions;
 
 namespace ConsoleApplicationBuilder
 {
-    class Menu
+    class Menu : PageComponent
     {
-        public string Content { get; set; }
-        public string Navigation { get; set; }
-        public List<Option> Options { get; set; }
+        private SelectOptionHandler _selectOptionHandler { get; set; }
+        private OptionsManager _optionsManager { get; set; }
 
-        private Menu _parentMenu { get; set; }
-        private readonly SelectOptionHandler _selectOptionHandler;
-
-        public Menu()
+        public Menu(string name) : base(name)
         {
-            Options = new List<Option>();
-            AddOption("test", () => Display());
-            Options[0].IsSelected = true;
-            _selectOptionHandler = new SelectOptionHandler(Options, this);
-        }
+            _optionsManager = new OptionsManager();
+            _selectOptionHandler = new SelectOptionHandler(_optionsManager, this);
 
-        public void UseParentMenu(Menu parentMenu)
-        {
-            _parentMenu = parentMenu;
-            AddOption("Back", () => _parentMenu.Display());
-        }
-
-        public void UseExit()
-        {
-            AddOption("Exit", () => Environment.Exit(0));
-        }
-
-        public void Display()
-        {
             Console.Clear();
+        }
 
-            bool isContentNotEmpty = !string.IsNullOrEmpty(Content);
+        public override void Display()
+        {
+            Console.SetCursorPosition(0, 0);
 
-            if (isContentNotEmpty)
-            {
-                Console.WriteLine(Content);
-                Console.WriteLine();
-            }
+            var selectedOption = _optionsManager.GetSelectedOption();
 
-            foreach (var option in Options)
+            if (selectedOption is null)
+                _optionsManager.SelectOption(0);
+
+            DisplayHeaders();
+
+            foreach (Option option in _optionsManager.Options)
             {
                 if(option.IsSelected)
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
-
-                Console.WriteLine($"< {option.Name} >");
-
-                Console.ResetColor();
+                    Output.WriteLine($"< {option.Name} >", fg:ConsoleColor.Black, bg:ConsoleColor.White);
+                else
+                    Console.WriteLine($"< {option.Name} >");
             }
 
             _selectOptionHandler.Handle();
         }
 
-        public void AddOption(string name, Action func)
-        {
-            bool isNameNotNull = !string.IsNullOrEmpty(name);
-
-            if (isNameNotNull)
-                Options.Add(new Option(name, func));
-            else
-                throw new AddOptionException();
-        }
-
-        public void AddOption(Option option)
-        {
-            bool isOptionNotNull = option is not null;
-
-            if (isOptionNotNull)
-                Options.Add(option);
-            else
-                throw new AddOptionException();
-        }
+        public void AddOption(Option option) => _optionsManager.AddOption(option);
+        public void AddOption(string name, Action func) => _optionsManager.AddOption(new Option(name, func));
+        public void DeleteOption(string name) => _optionsManager.DeleteOption(name);
+        public void AddBackOption() => AddOption("Back", _navigation.DisplayPrevious);
     }
 }

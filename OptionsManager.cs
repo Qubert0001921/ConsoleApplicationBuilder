@@ -9,12 +9,10 @@ namespace ConsoleApplicationBuilder
     class OptionsManager
     {
         public List<Option> Options { get; set; }
-        public Menu OptionsMenu { get; set; }
 
-        public OptionsManager(List<Option> options, Menu optionsMenu)
+        public OptionsManager()
         {
-            Options = options;
-            OptionsMenu = optionsMenu;
+            Options = new List<Option>();
         }
 
         public Option GetSelectedOption()
@@ -23,32 +21,42 @@ namespace ConsoleApplicationBuilder
             return option;
         }
 
-        public Option GetOption(int id)
+        public Option GetOption(int index)
         {
-            var option = Options.FirstOrDefault(r => r.Id == id);
+            if (index < 0 || index >= Options.Count)
+                return null;
+
+            var option = Options[index];
             return option;
         }
 
-        public void RunFunc(Option option)
+        public void SetOptionSelection(int index, bool selection)
         {
-            Console.Clear();
-            option.Func();
+            if(Options.Count > 0)
+            {
+                var option = GetOption(index);
+
+                if (option is not null)
+                    option.IsSelected = selection;
+            }
+        }
+        public void SelectOption(int index) => SetOptionSelection(index, true);
+
+        public void UnSelectOption(int index) => SetOptionSelection(index, false);
+
+        public void AddOption(Option option)
+        {
+            if (option is not null)
+                Options.Add(option);
+            else
+                throw new Exception("Can't add option to the menu because the option is empty");
         }
 
-        public void SelectOption(int id)
+        public void DeleteOption(string name)
         {
-            var selectedOption = GetSelectedOption();
-            var option = GetOption(id);
-
-            bool isOptionNotNull = option is not null;
-
-            if (isOptionNotNull)
-            {
-                selectedOption.IsSelected = false;
-                option.IsSelected = true;
-            }
-
-            OptionsMenu.Display();
+            var option = Options.FirstOrDefault(x => x.Name == name);
+            if (option is not null)
+                Options.Remove(option);
         }
     }
 }

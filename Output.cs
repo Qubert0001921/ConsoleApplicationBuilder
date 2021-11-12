@@ -8,12 +8,27 @@ namespace ConsoleApplicationBuilder
 {
     static class Output
     {
-        public static void WriteLine(string message, Menu menu)
+        public static void Write(string text, ConsoleColor fg = ConsoleColor.White, ConsoleColor bg = ConsoleColor.Black)
         {
-            Menu menu1 = new Menu();
-            menu1.Content = message;
-            menu1.UseParentMenu(menu);
-            menu1.Display();
+            Console.ForegroundColor = fg;
+            Console.BackgroundColor = bg;
+
+            Console.Write(text);
+
+            Console.ResetColor();
+        }
+
+        public static void WriteLine(string text, ConsoleColor fg = ConsoleColor.White, ConsoleColor bg = ConsoleColor.Black)
+        {
+            Write(text + "\n", fg, bg);
+        }
+
+        public static void DisplayPagePrompt(string prompt)
+        {
+            Menu menu = new Menu("message");
+            menu.Title = prompt;
+            menu.AddBackOption();
+            menu.Display();
         }
     }
 }

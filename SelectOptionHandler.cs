@@ -8,35 +8,51 @@ namespace ConsoleApplicationBuilder
 {
     class SelectOptionHandler
     {
-        public List<Option> Options { get; set; }
+        public Menu OptionsMenu { get; set; }
 
         private readonly OptionsManager _optionsManager;
 
-        public SelectOptionHandler(List<Option> options, Menu optionsMenu)
+        public SelectOptionHandler(OptionsManager optionsManager, Menu optionsMenu)
         {
-            Options = options;
-            _optionsManager = new OptionsManager(Options, optionsMenu);
+            OptionsMenu = optionsMenu;
+            _optionsManager = optionsManager;
         }
 
         public void Handle()
         {
-            var key = Console.ReadKey().Key;
+            var key = Console.ReadKey(true).Key;
             var selectedOption = _optionsManager.GetSelectedOption();
-            int id = selectedOption.Id;
+            var index = _optionsManager.Options.IndexOf(selectedOption);
 
-            switch(key)
+            if(selectedOption is not null)
             {
-                case ConsoleKey.UpArrow:
-                    _optionsManager.SelectOption(id - 1);
-                    break;
+                switch (key)
+                {
+                    case ConsoleKey.UpArrow:
+                        _optionsManager.UnSelectOption(index);
+                        _optionsManager.SelectOption(index - 1);
+                        OptionsMenu.Display();
+                        break;
 
-                case ConsoleKey.DownArrow:
-                    _optionsManager.SelectOption(id + 1);
-                    break;
+                    case ConsoleKey.DownArrow:
+                        _optionsManager.UnSelectOption(index);
+                        _optionsManager.SelectOption(index + 1);
+                        OptionsMenu.Display();
+                        break;
 
-                case ConsoleKey.Enter:
-                    _optionsManager.RunFunc(selectedOption);
-                    break;
+                    case ConsoleKey.Enter:
+                        Console.Clear();
+                        selectedOption.Func();
+                        break;
+
+                    default:
+                        OptionsMenu.Display();
+                        break;
+                }
+            }
+            else
+            {
+                OptionsMenu.Display();
             }
         }
     }

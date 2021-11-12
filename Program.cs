@@ -1,43 +1,65 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace ConsoleApplicationBuilder
 {
     class Program
     {
-        public static Menu menu;
-        public static Menu menu1;
-
-        static void Main(string[] args)
+        public static void ShowSomeMenu()
         {
-            menu = new Menu();
-            menu.Content = "Main Menu";
+            Menu someMenu = new Menu("SOme menu");
 
-            menu.AddOption("First Option", () => Output.WriteLine("Hello World", menu));
-            menu.AddOption("Second Option", () => SecondOptionHandel());
-            menu.UseExit();
-
-            menu.Display();
+            someMenu.AddOption("Log out", () =>
+            {
+                if (MessageBox.DisplayMessageBox("Do you really want to log out?"))
+                {
+                    Console.Clear();
+                    Output.WriteLine("Logging out...", ConsoleColor.Yellow);
+                    Thread.Sleep(2000);
+                    someMenu.BackToMainPage();
+                }
+                else someMenu.Display();
+            });
+            someMenu.Display();
         }
 
-        static void InputValueTest()
+        public static void Login()
         {
-            Console.Write("Type text here: ");
-            string text = Console.ReadLine();
+            Page page1 = new Page("Login form");
+            page1.OnDisplay = () =>
+            {
+                string name = Input.Read("name: ");
+                string password = Input.ReadPassword("password: ");
 
-            Output.WriteLine($"Hello {text}", menu1);
+                if (name == "Admin" && password == "password")
+                {
+                    Console.Clear();
+                    Output.WriteLine("You logged in!", ConsoleColor.Green);
+                    Thread.Sleep(1500);
+                    ShowSomeMenu();
+                }
+                else
+                {
+                    Console.Clear();
+                    Output.WriteLine("Wrong name or password", ConsoleColor.Red);
+                    Thread.Sleep(1500);
+                    page1.BackToMainPage();
+                }
+            };
+
+            page1.Display();
         }
 
-        static void SecondOptionHandel()
+        public static void Main(string[] args)
         {
-            menu1 = new Menu();
-            menu1.Content = "Menu1 content";
+            Navigation.ShowNavigation = false;
 
-            menu1.AddOption("First option in menu1", () => Output.WriteLine("Hello", menu1));
-            menu1.AddOption("Second option in menu1", () => Output.WriteLine("Hello from second option menu", menu1));
-            menu1.AddOption("Input value test", () => InputValueTest());
-            menu1.UseParentMenu(menu);
-
-            menu1.Display();
+            Menu mainMenu = new Menu("Main menu");
+            mainMenu.AddOption("Login", Login);
+            mainMenu.AddOption("Exit", () => Environment.Exit(0));
+            mainMenu.Display();
         }
     }
 }
